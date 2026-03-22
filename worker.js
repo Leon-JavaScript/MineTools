@@ -1,17 +1,56 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run "npm run dev" in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run "npm run deploy" to publish your worker
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import { enforceRateLimit } from "./middleware/rateLimit";
+import { serveDefaultPage } from "./pages/defaultPage";
+import { handleProfileRoute } from "./routes/profileRoute";
+import { handleUuidRoute } from "./routes/uuidRoute";
+import { internalError, notFound } from "./utils/responses";
+
+const ROUTE_HANDLERS = {
+  uuid: handleUuidRoute,
+  profile: handleProfileRoute
+};
+
+function parsePath(pathname) {
+  return pathname.split("/").filter(Boolean);
+}
+
+function resolveRoute(requestUrl) {
+  const { pathname } = new URL(requestUrl);
+  const [resource, identifier, ...rest] = parsePath(pathname);
+
+  if (!resource || !identifier || rest.length > 0) {
+    return null;
+  }
+
+  const handler = ROUTE_HANDLERS[resource];
+  if (!handler) {
+    return null;
+  }
+
+  return { handler, identifier };
+}
 
 export default {
-  async fetch(request, env, ctx) {
-    // You can view your logs in the Observability dashboard
-    console.info({ message: 'Hello World Worker received a request!' }); 
-    return new Response('Hello World!');
+  async fetch(request, env) {
+    try {
+      const { pathname } = new URL(request.url);
+      if (pathname === "/") {
+        return serveDefaultPage(request);
+      }
+
+      const route = resolveRoute(request.url);
+      if (!route) {
+        return notFound("Route not found");
+      }
+
+      const rateLimitedResponse = await enforceRateLimit(request, env);
+      if (rateLimitedResponse) {
+        return rateLimitedResponse;
+      }
+
+      return route.handler(route.identifier, env);
+    } catch (error) {
+      console.error("Unhandled worker error", error);
+      return internalError();
+    }
   }
 };

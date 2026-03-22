@@ -5,6 +5,11 @@ compatibility_date = "2026-03-22"
 # Keep workers.dev enabled unless you are deploying to a custom route.
 workers_dev = false
 
+[[rules]]
+type = "Text"
+globs = ["**/*.css"]
+fallthrough = true
+
 [[kv_namespaces]]
 binding = "PROFILE_CACHE"
 id = "32a71a2c083e42f7bee7b40eb75c1ea6"
