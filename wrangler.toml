@@ -1,0 +1,6 @@
+name = "minetools"
+main = "worker.js"
+compatibility_date = "2026-03-22"
+
+# Keep workers.dev enabled unless you are deploying to a custom route.
+workers_dev = true
