@@ -22,7 +22,22 @@ function buildResponse(profile, cache) {
 }
 
 function isValidCachedIdentity(cached) {
-  return cached?.payload?.id && cached?.payload?.name && typeof cached.cachedAt === "number";
+  return Boolean(cached?.payload?.id) && Boolean(cached?.payload?.name) && typeof cached.cachedAt === "number";
+}
+
+function buildIdentityPayload(id, name, profile) {
+  return {
+    id,
+    name,
+    profile: profile ?? null
+  };
+}
+
+async function cacheIdentityPayload(env, payload) {
+  await Promise.all([
+    setCachedEntry(env, uuidNameKey(payload.name), payload, CACHE_TTL_SECONDS),
+    setCachedEntry(env, uuidIdKey(payload.id), payload, CACHE_TTL_SECONDS)
+  ]);
 }
 
 export async function handleUuidRoute(identifier, env) {
@@ -51,15 +66,8 @@ export async function handleUuidRoute(identifier, env) {
       return notFound("Player not found");
     }
 
-    const payload = {
-      id: upstream.data.id,
-      name: upstream.data.name
-    };
-
-    await Promise.all([
-      setCachedEntry(env, uuidNameKey(payload.name), payload, CACHE_TTL_SECONDS),
-      setCachedEntry(env, uuidIdKey(payload.id), payload, CACHE_TTL_SECONDS)
-    ]);
+    const payload = buildIdentityPayload(upstream.data.id, upstream.data.name, null);
+    await cacheIdentityPayload(env, payload);
 
     const now = nowSeconds();
     const cache = buildCacheMeta(false, CACHE_TTL_SECONDS, now, now);

@@ -10,8 +10,12 @@ import {
   nowSeconds
 } from "../utils/utils";
 
-function profileKey(uuidNoDashes) {
-  return `profile:${uuidNoDashes}`;
+function uuidNameKey(username) {
+  return `uuid:username:${username.toLowerCase()}`;
+}
+
+function uuidIdKey(uuid) {
+  return `uuid:id:${uuid.toLowerCase()}`;
 }
 
 function decodeTextures(rawProfile) {
@@ -26,23 +30,11 @@ function buildProfilePayload(rawProfile) {
   };
 }
 
-function buildResponseFromPayload(payload, cache) {
-  // Backward compatibility for cache entries written before decoded payload caching.
-  if (!payload?.rawProfile) {
-    return {
-      decoded: decodeTextures(payload),
-      raw: {
-        ...payload,
-        cache,
-        status: STATUS.OK
-      }
-    };
-  }
-
+function buildResponseFromProfile(profilePayload, cache) {
   return {
-    decoded: payload.decoded,
+    decoded: profilePayload.decoded,
     raw: {
-      ...payload.rawProfile,
+      ...profilePayload.rawProfile,
       cache,
       status: STATUS.OK
     }
@@ -50,7 +42,22 @@ function buildResponseFromPayload(payload, cache) {
 }
 
 function isValidCachedProfile(cached) {
-  return Boolean(cached?.payload) && typeof cached.cachedAt === "number";
+  return Boolean(cached?.payload?.profile?.rawProfile) && typeof cached.cachedAt === "number";
+}
+
+function buildIdentityPayload(id, name, profile) {
+  return {
+    id,
+    name,
+    profile
+  };
+}
+
+async function cacheIdentityPayload(env, payload) {
+  await Promise.all([
+    setCachedEntry(env, uuidNameKey(payload.name), payload, CACHE_TTL_SECONDS),
+    setCachedEntry(env, uuidIdKey(payload.id), payload, CACHE_TTL_SECONDS)
+  ]);
 }
 
 export async function handleProfileRoute(identifier, env) {
@@ -59,13 +66,13 @@ export async function handleProfileRoute(identifier, env) {
   }
 
   const normalizedUuid = normalizeUuid(identifier.trim());
-  const cacheKey = profileKey(normalizedUuid);
+  const cacheKey = uuidIdKey(normalizedUuid);
 
   const cached = await getCachedEntry(env, cacheKey);
   if (isValidCachedProfile(cached)) {
     const now = nowSeconds();
     const cache = buildCacheMeta(true, CACHE_TTL_SECONDS, cached.cachedAt, now);
-    return jsonResponse(buildResponseFromPayload(cached.payload, cache));
+    return jsonResponse(buildResponseFromProfile(cached.payload.profile, cache));
   }
 
   try {
@@ -75,12 +82,14 @@ export async function handleProfileRoute(identifier, env) {
     }
 
     const rawProfile = upstream.data;
-    const profilePayload = buildProfilePayload(rawProfile);
-    await setCachedEntry(env, cacheKey, profilePayload, CACHE_TTL_SECONDS);
+    const profile = buildProfilePayload(rawProfile);
+
+    const identityPayload = buildIdentityPayload(rawProfile.id, rawProfile.name, profile);
+    await cacheIdentityPayload(env, identityPayload);
 
     const now = nowSeconds();
     const cache = buildCacheMeta(false, CACHE_TTL_SECONDS, now, now);
-    return jsonResponse(buildResponseFromPayload(profilePayload, cache));
+    return jsonResponse(buildResponseFromProfile(profile, cache));
   } catch (error) {
     console.error("Profile route error", error);
     return internalError("Failed to fetch profile");
