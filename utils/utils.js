@@ -1,8 +1,8 @@
+const UUID_NO_DASHES_REGEX = /^[0-9a-fA-F]{32}$/;
+const UUID_DASHED_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
 export function isUuid(value) {
-  return (
-    /^[0-9a-fA-F]{32}$/.test(value) ||
-    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value)
-  );
+  return UUID_NO_DASHES_REGEX.test(value) || UUID_DASHED_REGEX.test(value);
 }
 
 export function normalizeUuid(value) {
@@ -13,8 +13,8 @@ export function nowSeconds() {
   return Math.floor(Date.now() / 1000);
 }
 
-export function buildCacheMeta(hit, ttlSeconds, cachedAtSeconds) {
-  const now = nowSeconds();
+export function buildCacheMeta(hit, ttlSeconds, cachedAtSeconds, currentTimeSeconds = nowSeconds()) {
+  const now = currentTimeSeconds;
   const cachedUntil = cachedAtSeconds + ttlSeconds;
 
   return {

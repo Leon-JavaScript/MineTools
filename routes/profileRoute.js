@@ -19,11 +19,30 @@ function decodeTextures(rawProfile) {
   return texturesProperty?.value ? decodeBase64Json(texturesProperty.value) : null;
 }
 
-function buildResponse(rawProfile, cache) {
+function buildProfilePayload(rawProfile) {
   return {
     decoded: decodeTextures(rawProfile),
+    rawProfile
+  };
+}
+
+function buildResponseFromPayload(payload, cache) {
+  // Backward compatibility for cache entries written before decoded payload caching.
+  if (!payload?.rawProfile) {
+    return {
+      decoded: decodeTextures(payload),
+      raw: {
+        ...payload,
+        cache,
+        status: STATUS.OK
+      }
+    };
+  }
+
+  return {
+    decoded: payload.decoded,
     raw: {
-      ...rawProfile,
+      ...payload.rawProfile,
       cache,
       status: STATUS.OK
     }
@@ -44,8 +63,9 @@ export async function handleProfileRoute(identifier, env) {
 
   const cached = await getCachedEntry(env, cacheKey);
   if (isValidCachedProfile(cached)) {
-    const cache = buildCacheMeta(true, CACHE_TTL_SECONDS, cached.cachedAt);
-    return jsonResponse(buildResponse(cached.payload, cache));
+    const now = nowSeconds();
+    const cache = buildCacheMeta(true, CACHE_TTL_SECONDS, cached.cachedAt, now);
+    return jsonResponse(buildResponseFromPayload(cached.payload, cache));
   }
 
   try {
@@ -55,10 +75,12 @@ export async function handleProfileRoute(identifier, env) {
     }
 
     const rawProfile = upstream.data;
-    await setCachedEntry(env, cacheKey, rawProfile, CACHE_TTL_SECONDS);
+    const profilePayload = buildProfilePayload(rawProfile);
+    await setCachedEntry(env, cacheKey, profilePayload, CACHE_TTL_SECONDS);
 
-    const cache = buildCacheMeta(false, CACHE_TTL_SECONDS, nowSeconds());
-    return jsonResponse(buildResponse(rawProfile, cache));
+    const now = nowSeconds();
+    const cache = buildCacheMeta(false, CACHE_TTL_SECONDS, now, now);
+    return jsonResponse(buildResponseFromPayload(profilePayload, cache));
   } catch (error) {
     console.error("Profile route error", error);
     return internalError("Failed to fetch profile");

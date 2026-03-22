@@ -37,7 +37,8 @@ export async function handleUuidRoute(identifier, env) {
 
   const cached = await getCachedEntry(env, cacheKey);
   if (isValidCachedIdentity(cached)) {
-    const cache = buildCacheMeta(true, CACHE_TTL_SECONDS, cached.cachedAt);
+    const now = nowSeconds();
+    const cache = buildCacheMeta(true, CACHE_TTL_SECONDS, cached.cachedAt, now);
     return jsonResponse(buildResponse(cached.payload, cache));
   }
 
@@ -60,7 +61,8 @@ export async function handleUuidRoute(identifier, env) {
       setCachedEntry(env, uuidIdKey(payload.id), payload, CACHE_TTL_SECONDS)
     ]);
 
-    const cache = buildCacheMeta(false, CACHE_TTL_SECONDS, nowSeconds());
+    const now = nowSeconds();
+    const cache = buildCacheMeta(false, CACHE_TTL_SECONDS, now, now);
     return jsonResponse(buildResponse(payload, cache));
   } catch (error) {
     console.error("UUID route error", error);

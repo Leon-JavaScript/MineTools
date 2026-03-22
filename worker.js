@@ -9,15 +9,21 @@ const ROUTE_HANDLERS = {
   profile: handleProfileRoute
 };
 
-function parsePath(pathname) {
-  return pathname.split("/").filter(Boolean);
-}
+function resolveRoute(pathname) {
+  if (!pathname || pathname === "/") {
+    return null;
+  }
 
-function resolveRoute(requestUrl) {
-  const { pathname } = new URL(requestUrl);
-  const [resource, identifier, ...rest] = parsePath(pathname);
+  const normalizedPath = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+  const separatorIndex = normalizedPath.indexOf("/");
 
-  if (!resource || !identifier || rest.length > 0) {
+  if (separatorIndex <= 0) {
+    return null;
+  }
+
+  const resource = normalizedPath.slice(0, separatorIndex);
+  const identifier = normalizedPath.slice(separatorIndex + 1);
+  if (!identifier || identifier.includes("/")) {
     return null;
   }
 
@@ -32,12 +38,12 @@ function resolveRoute(requestUrl) {
 export default {
   async fetch(request, env) {
     try {
-      const { pathname } = new URL(request.url);
+      const pathname = new URL(request.url).pathname;
       if (pathname === "/") {
         return serveDefaultPage(request);
       }
 
-      const route = resolveRoute(request.url);
+      const route = resolveRoute(pathname);
       if (!route) {
         return notFound("Route not found");
       }
