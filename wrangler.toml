@@ -18,4 +18,4 @@ id = "32a71a2c083e42f7bee7b40eb75c1ea6"
 name = "RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1"
-simple = { limit = 120, period = 60 }
+simple = { limit = 90, period = 60 }
