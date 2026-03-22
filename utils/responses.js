@@ -1,7 +1,9 @@
 import { STATUS } from "../config/constants";
 
+const JSON_INDENT_SPACES = 2;
+
 export function jsonResponse(data, status = 200, headers = {}) {
-  return new Response(JSON.stringify(data), {
+  return new Response(JSON.stringify(data, null, JSON_INDENT_SPACES), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
