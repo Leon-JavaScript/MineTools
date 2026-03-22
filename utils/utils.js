@@ -9,6 +9,39 @@ export function normalizeUuid(value) {
   return value.toLowerCase().replace(/-/g, "");
 }
 
+export function parseUsernameOrUuid(identifier) {
+  if (typeof identifier !== "string") {
+    return {
+      ok: false,
+      message: "Missing username or uuid"
+    };
+  }
+
+  const value = identifier.trim();
+  if (!value) {
+    return {
+      ok: false,
+      message: "Missing username or uuid"
+    };
+  }
+
+  if (isUuid(value)) {
+    return {
+      ok: true,
+      kind: "uuid",
+      value,
+      normalizedUuid: normalizeUuid(value)
+    };
+  }
+
+  return {
+    ok: true,
+    kind: "username",
+    value,
+    username: value
+  };
+}
+
 export function nowSeconds() {
   return Math.floor(Date.now() / 1000);
 }

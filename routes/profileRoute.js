@@ -1,13 +1,12 @@
 import { CACHE_TTL_SECONDS, STATUS } from "../config/constants";
-import { fetchSessionProfile } from "../services/minecraftApi";
+import { fetchSessionProfile, lookupByUsername } from "../services/minecraftApi";
 import { getCachedEntry, setCachedEntry } from "../utils/cache";
 import { badRequest, internalError, jsonResponse, notFound } from "../utils/responses";
 import {
   buildCacheMeta,
   decodeBase64Json,
-  isUuid,
-  normalizeUuid,
-  nowSeconds
+  nowSeconds,
+  parseUsernameOrUuid
 } from "../utils/utils";
 
 function uuidNameKey(username) {
@@ -61,12 +60,14 @@ async function cacheIdentityPayload(env, payload) {
 }
 
 export async function handleProfileRoute(identifier, env) {
-  if (!identifier || !isUuid(identifier.trim())) {
-    return badRequest("Invalid uuid format");
+  const parsed = parseUsernameOrUuid(identifier);
+  if (!parsed.ok) {
+    return badRequest(parsed.message);
   }
 
-  const normalizedUuid = normalizeUuid(identifier.trim());
-  const cacheKey = uuidIdKey(normalizedUuid);
+  const cacheKey = parsed.kind === "uuid"
+    ? uuidIdKey(parsed.normalizedUuid)
+    : uuidNameKey(parsed.username);
 
   const cached = await getCachedEntry(env, cacheKey);
   if (isValidCachedProfile(cached)) {
@@ -76,7 +77,23 @@ export async function handleProfileRoute(identifier, env) {
   }
 
   try {
-    const upstream = await fetchSessionProfile(normalizedUuid);
+    let resolvedId = parsed.kind === "uuid" ? parsed.normalizedUuid : null;
+
+    // If a username key is already cached without profile, skip an extra lookup.
+    if (!resolvedId && cached?.payload?.id) {
+      resolvedId = cached.payload.id;
+    }
+
+    if (!resolvedId) {
+      const identityUpstream = await lookupByUsername(parsed.username);
+      if (identityUpstream.notFound) {
+        return notFound("Player profile not found");
+      }
+
+      resolvedId = identityUpstream.data.id;
+    }
+
+    const upstream = await fetchSessionProfile(resolvedId);
     if (upstream.notFound) {
       return notFound("Player profile not found");
     }

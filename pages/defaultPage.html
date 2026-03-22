@@ -21,7 +21,7 @@
         </article>
 
         <article class="card">
-          <h2>Route: /profile/&#123;uuid&#125;</h2>
+          <h2>Route: /profile/&#123;username|uuid&#125;</h2>
           <div>Usage:</div>
           <pre><code>__PROFILE_USAGE__</code></pre>
           <div>Example response (jeb_):</div>
@@ -43,7 +43,7 @@
             <tr>
               <td>400</td>
               <td>BAD_REQUEST</td>
-              <td>Missing identifier on <code class="inline">/uuid</code> or invalid UUID format on <code class="inline">/profile/&#123;uuid&#125;</code>.</td>
+              <td>Missing identifier on <code class="inline">/uuid</code> or <code class="inline">/profile</code>.</td>
             </tr>
             <tr>
               <td>404</td>

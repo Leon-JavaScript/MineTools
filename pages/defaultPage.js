@@ -85,7 +85,7 @@ export function serveDefaultPage(request) {
     const html = htmlSource
         .replace("/*__INLINE_CSS__*/", cssSource)
         .replace("__UUID_USAGE__", escapeHtml(`${base}/uuid/jeb_\n${base}/uuid/853c80ef3c3749fdaa49938b674adae6`))
-        .replace("__PROFILE_USAGE__", escapeHtml(`${base}/profile/853c80ef3c3749fdaa49938b674adae6`))
+        .replace("__PROFILE_USAGE__", escapeHtml(`${base}/profile/jeb_\n${base}/profile/853c80ef3c3749fdaa49938b674adae6`))
         .replace("__UUID_EXAMPLE__", renderJson(UUID_EXAMPLE))
         .replace("__PROFILE_EXAMPLE__", renderJson(PROFILE_EXAMPLE));
 

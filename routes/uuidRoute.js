@@ -1,7 +1,7 @@
 import { CACHE_TTL_SECONDS, STATUS } from "../config/constants";
 import { getCachedEntry, setCachedEntry } from "../utils/cache";
 import { badRequest, internalError, jsonResponse, notFound } from "../utils/responses";
-import { buildCacheMeta, isUuid, normalizeUuid, nowSeconds } from "../utils/utils";
+import { buildCacheMeta, nowSeconds, parseUsernameOrUuid } from "../utils/utils";
 import { lookupByUsername, lookupByUuid } from "../services/minecraftApi";
 
 function uuidNameKey(username) {
@@ -41,14 +41,14 @@ async function cacheIdentityPayload(env, payload) {
 }
 
 export async function handleUuidRoute(identifier, env) {
-  if (!identifier) {
-    return badRequest("Missing username or uuid");
+  const parsed = parseUsernameOrUuid(identifier);
+  if (!parsed.ok) {
+    return badRequest(parsed.message);
   }
 
-  const input = identifier.trim();
-  const inputIsUuid = isUuid(input);
-  const normalizedUuid = inputIsUuid ? normalizeUuid(input) : null;
-  const cacheKey = inputIsUuid ? uuidIdKey(normalizedUuid) : uuidNameKey(input);
+  const cacheKey = parsed.kind === "uuid"
+    ? uuidIdKey(parsed.normalizedUuid)
+    : uuidNameKey(parsed.username);
 
   const cached = await getCachedEntry(env, cacheKey);
   if (isValidCachedIdentity(cached)) {
@@ -58,9 +58,9 @@ export async function handleUuidRoute(identifier, env) {
   }
 
   try {
-    const upstream = inputIsUuid
-      ? await lookupByUuid(normalizedUuid)
-      : await lookupByUsername(input);
+    const upstream = parsed.kind === "uuid"
+      ? await lookupByUuid(parsed.normalizedUuid)
+      : await lookupByUsername(parsed.username);
 
     if (upstream.notFound) {
       return notFound("Player not found");
