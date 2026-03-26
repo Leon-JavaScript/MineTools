@@ -1,6 +1,6 @@
 {
   "name": "minetools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Cloudflare Worker for MineTools",
   "scripts": {
     "dev": "wrangler dev",
