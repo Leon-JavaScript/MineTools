@@ -2,7 +2,8 @@
 
 A blazingly fast Cloudflare Worker API for Minecraft player identity and profile lookups. Resolve Minecraft usernames and UUIDs to player data with built-in caching, rate limiting, and optimized performance.
 
-> **⚠️ Disclaimer:** This is an independent recreation project and is **not affiliated with** `api.minetools.eu`, **Mojang**, or **Microsoft**. This service aggregates data from official Minecraft APIs for educational and development purposes.
+> [!WARNING]
+> **Disclaimer:** This is an independent recreation project and is **not affiliated with** `api.minetools.eu`, **Mojang**, or **Microsoft**. This service aggregates data from official Minecraft APIs for educational and development purposes.
 
 > **Note:** This project is deployed as a Cloudflare Worker with zero-cold-start execution, making it ideal for serverless Minecraft data services.
 
