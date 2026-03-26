@@ -27,6 +27,10 @@ body {
 
 h1 {
   margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 h2 {
@@ -92,4 +96,30 @@ th {
   padding: 12px;
   margin-bottom: 20px;
   color: #fbbf24;
+}
+
+.github-link {
+  display: inline-flex;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  color: var(--text);
+  text-decoration: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+  transition: background 0.2s, border-color 0.2s;
+  align-items: center;
+  gap: 6px;
+}
+
+.github-link:hover {
+  background: #0d1117;
+  border-color: #58a6ff;
+}
+
+.github-link svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
 }
