@@ -1,6 +1,6 @@
 {
   "name": "minetools",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Cloudflare Worker for MineTools",
   "scripts": {
     "dev": "wrangler dev",
@@ -20,6 +20,6 @@
   },
   "homepage": "https://github.com/Leon-JavaScript/MineTools#readme",
   "devDependencies": {
-    "wrangler": "^4.77.0"
+    "wrangler": "^4.78.0"
   }
 }
