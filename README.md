@@ -53,7 +53,7 @@ curl https://your-worker.dev/uuid/8667ba71b29a4d67abb5a206094d940e
 ```json
 {
   "cache": {
-    "hit": true,
+    "HIT": true,
     "cache_time_left": 43195
   },
   "id": "8667ba71b29a4d67abb5a206094d940e",
@@ -95,7 +95,7 @@ curl https://your-worker.dev/profile/8667ba71-b29a-4d67-abb5-a206094d940e
 ```json
 {
   "cache": {
-    "hit": true,
+    "HIT": true,
     "cache_time_left": 43192
   },
   "id": "8667ba71b29a4d67abb5a206094d940e",
@@ -158,7 +158,7 @@ MineTools uses an efficient unified cache schema:
 ### Cache Behavior
 
 - **First Request:** Queries Minecraft API, stores result in cache
-- **Subsequent Requests (within TTL):** Returns cached entry with `hit: true` and remaining TTL
+- **Subsequent Requests (within TTL):** Returns cached entry with `HIT: true` and remaining TTL
 - **After TTL Expires:** Fresh lookup from Minecraft API, cache refreshed
 
 ## Performance Optimizations
