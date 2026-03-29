@@ -1,16 +1,9 @@
 import { CACHE_TTL_SECONDS, STATUS } from "../config/constants";
 import { getCachedEntry, setCachedEntry } from "../utils/cache";
+import { buildIdentityPayload, uuidIdKey, uuidNameKey } from "../utils/identity";
 import { badRequest, internalError, jsonResponse, notFound } from "../utils/responses";
 import { buildCacheMeta, nowSeconds, parseUsernameOrUuid } from "../utils/utils";
 import { lookupByUsername, lookupByUuid } from "../services/minecraftApi";
-
-function uuidNameKey(username) {
-  return `uuid:username:${username.toLowerCase()}`;
-}
-
-function uuidIdKey(uuid) {
-  return `uuid:id:${uuid.toLowerCase()}`;
-}
 
 function buildResponse(profile, cache) {
   return {
@@ -23,14 +16,6 @@ function buildResponse(profile, cache) {
 
 function isValidCachedIdentity(cached) {
   return Boolean(cached?.payload?.id) && Boolean(cached?.payload?.name) && typeof cached.cachedAt === "number";
-}
-
-function buildIdentityPayload(id, name, profile) {
-  return {
-    id,
-    name,
-    profile: profile ?? null
-  };
 }
 
 async function cacheIdentityPayload(env, payload) {

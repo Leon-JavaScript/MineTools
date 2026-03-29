@@ -1,6 +1,7 @@
 import { CACHE_TTL_SECONDS, STATUS } from "../config/constants";
 import { fetchSessionProfile, lookupByUsername } from "../services/minecraftApi";
 import { getCachedEntry, setCachedEntry } from "../utils/cache";
+import { buildIdentityPayload, uuidIdKey, uuidNameKey } from "../utils/identity";
 import { badRequest, internalError, jsonResponse, notFound } from "../utils/responses";
 import {
   buildCacheMeta,
@@ -8,14 +9,6 @@ import {
   nowSeconds,
   parseUsernameOrUuid
 } from "../utils/utils";
-
-function uuidNameKey(username) {
-  return `uuid:username:${username.toLowerCase()}`;
-}
-
-function uuidIdKey(uuid) {
-  return `uuid:id:${uuid.toLowerCase()}`;
-}
 
 function decodeTextures(rawProfile) {
   const texturesProperty = rawProfile.properties?.find((property) => property.name === "textures");
@@ -42,14 +35,6 @@ function buildResponseFromProfile(profilePayload, cache) {
 
 function isValidCachedProfile(cached) {
   return Boolean(cached?.payload?.profile?.rawProfile) && typeof cached.cachedAt === "number";
-}
-
-function buildIdentityPayload(id, name, profile) {
-  return {
-    id,
-    name,
-    profile
-  };
 }
 
 async function cacheIdentityPayload(env, payload) {
